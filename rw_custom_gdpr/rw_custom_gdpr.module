@@ -6,6 +6,9 @@
  */
 
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Component\Utility\Crypt;
+use Drupal\Component\Utility\Unicode;
+use Drupal\Core\Site\Settings;
 
 /**
  * Implements hook_help().
@@ -27,18 +30,24 @@ function rw_custom_gdpr_help($route_name, RouteMatchInterface $route_match) {
  * Implements hook_ENTITY_TYPE_delete() for user_role entities.
  */
 function rw_custom_gdpr_user_delete(Drupal\Core\Entity\EntityInterface $entity) {
-  //var_dump($entity->id());
- // var_dump($entity->getEmail());
- /* $connection = \Drupal::database();
-  $entry = '';
-  $connection->insert('rw_gdpr_users_data')->fields($entry)->execute();
-  */
- db_insert('rw_gdpr_users_data')
-    ->fields([
-      'uid' => $entity->id(),
-      'encrypted_data' => $entity->getEmail(),
-      'deleted' => time(),
-    ])
-    ->execute();
-//exit();
+  if (!empty($entity->getEmail())) {
+    // Insert into custom table.
+    db_insert('rw_gdpr_users_data')
+      ->fields([
+        'uid' => $entity->id(),
+        'encrypted_data' => rw_custom_gdpr_hash_email ($entity->getEmail(), $entity->id(), time()),
+        'deleted' => time(),
+       ])
+      ->execute();
+  }
+}
+
+/**
+ * Helper function to hash the email using the uid and deleted time.
+ * @see: user_pass_rehash.
+ */
+function rw_custom_gdpr_hash_email ($email, $uid, $time) {
+  $data = $time;
+  $data .= $uid;
+  return Crypt::hmacBase64($data, Settings::getHashSalt() . $email);
 }
