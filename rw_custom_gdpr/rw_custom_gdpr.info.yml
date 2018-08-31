@@ -1,0 +1,8 @@
+name: 'RedWeb custom GDPR'
+type: module
+description: 'Custom module for users gdpr complience'
+core: 8.x
+package: 'Custom'
+dependencies:
+  - user
+  - encrypt

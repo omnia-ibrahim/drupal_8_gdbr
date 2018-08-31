@@ -1,0 +1,44 @@
+<?php
+
+/**
+ * @file
+ * Contains rw_custom_gdpr.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function rw_custom_gdpr_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the rw_custom_gdpr module.
+    case 'help.page.rw_custom_gdpr':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Custom module for users gdpr complience') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_delete() for user_role entities.
+ */
+function rw_custom_gdpr_user_delete(Drupal\Core\Entity\EntityInterface $entity) {
+  //var_dump($entity->id());
+ // var_dump($entity->getEmail());
+ /* $connection = \Drupal::database();
+  $entry = '';
+  $connection->insert('rw_gdpr_users_data')->fields($entry)->execute();
+  */
+ db_insert('rw_gdpr_users_data')
+    ->fields([
+      'uid' => $entity->id(),
+      'encrypted_data' => $entity->getEmail(),
+      'deleted' => time(),
+    ])
+    ->execute();
+//exit();
+}
